@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLMAsAJudge - Multi-Model LLM Evaluation Framework</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #0a0a0a;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+            color: white;
+            padding: 60px 40px;
+            text-align: center;
+            border-bottom: 3px solid #f59e0b;
+        }
+
+        h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .tagline {
+            font-size: 1.3em;
+            opacity: 0.95;
+            margin-bottom: 30px;
+            color: #10b981;
+            font-weight: 500;
+        }
+
+        .badges {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .badge {
+            background: rgba(245, 158, 11, 0.1);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            backdrop-filter: blur(10px);
+            border: 1px solid #f59e0b;
+            color: #f59e0b;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        h2 {
+            color: #f59e0b;
+            font-size: 2em;
+            margin: 40px 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #f59e0b;
+        }
+
+        h3 {
+            color: #10b981;
+            font-size: 1.5em;
+            margin: 30px 0 15px 0;
+        }
+
+        .intro {
+            font-size: 1.1em;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            color: #ffffff;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease;
+            border: 1px solid #404040;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(245, 158, 11, 0.3);
+            border: 1px solid #f59e0b;
+        }
+
+        .feature-card h4 {
+            color: #f59e0b;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .feature-card p {
+            color: #ffffff;
+            font-size: 0.95em;
+        }
+
+        .install-box {
+            background: #1a1a1a;
+            border-left: 4px solid #f59e0b;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+            border: 1px solid #404040;
+        }
+
+        .install-box code {
+            background: #000000;
+            color: #10b981;
+            padding: 15px;
+            border-radius: 5px;
+            display: block;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1em;
+            border: 1px solid #404040;
+        }
+
+        .example-section {
+            margin: 40px 0;
+            background: #1a1a1a;
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid #404040;
+        }
+
+        .example-title {
+            color: #f59e0b;
+            font-size: 1.3em;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .example-description {
+            color: #10b981;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
+        pre {
+            background: #000000;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.5;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
+            border: 1px solid #404040;
+        }
+
+        .keyword { color: #f59e0b; }
+        .string { color: #10b981; }
+        .comment { color: #6b7280; font-style: italic; }
+        .function { color: #3b82f6; }
+        .number { color: #f59e0b; }
+
+        .toc {
+            background: #1a1a1a;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 30px 0;
+            border: 2px solid #f59e0b;
+        }
+
+        .toc h3 {
+            color: #f59e0b;
+            margin-top: 0;
+        }
+
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .toc li {
+            padding: 8px 0;
+            border-bottom: 1px solid #404040;
+        }
+
+        .toc li:last-child {
+            border-bottom: none;
+        }
+
+        .toc a {
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .toc a:hover {
+            color: #f59e0b;
+        }
+
+        footer {
+            background: #000000;
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-top: 3px solid #f59e0b;
+        }
+
+        footer a {
+            color: #10b981;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            color: #f59e0b;
+            text-decoration: underline;
+        }
+
+        .config-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: #1a1a1a;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            border: 1px solid #404040;
+        }
+
+        .config-table th {
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+            color: #f59e0b;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #f59e0b;
+        }
+
+        .config-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #404040;
+            color: #ffffff;
+        }
+
+        .config-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .config-table tr:hover {
+            background: #2d2d2d;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            header {
+                padding: 40px 20px;
+            }
+
+            .features {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 LLMAsAJudge</h1>
+            <p class="tagline">Flexible Multi-Model LLM Evaluation Framework</p>
+            <div class="badges">
+                <span class="badge">✨ Multi-Model Voting</span>
+                <span class="badge">🔌 litellm Integration</span>
+                <span class="badge">🎯 Custom Inference</span>
+                <span class="badge">⚡ Easy to Use</span>
+            </div>
+        </header>
+
+        <div class="content">
+            <section id="intro">
+                <p class="intro">
+                    <strong>LLMAsAJudge</strong> is a powerful Python framework for evaluating model outputs using multiple LLM judges.
+                    It supports litellm models, custom inference functions, and flexible voting mechanisms to determine correctness.
+                    Perfect for automated evaluation pipelines, benchmarking, and quality assurance.
+                </p>
+            </section>
+
+            <section id="features">
+                <h2>🌟 Key Features</h2>
+                <div class="features">
+                    <div class="feature-card">
+                        <h4>🔄 Multi-Model Voting</h4>
+                        <p>Combine multiple LLM judges with majority, single, or unanimous voting modes</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🎨 Flexible Parsers</h4>
+                        <p>Built-in parsers for right/wrong, yes/no, pass/fail, numeric scores, and custom formats</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🔌 litellm Support</h4>
+                        <p>Access 100+ LLM providers through litellm (OpenAI, W&B Inference, and more)</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>⚙️ Custom Inference</h4>
+                        <p>Use your own local models or custom inference functions alongside litellm</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>📝 Custom Templates</h4>
+                        <p>Define your own prompt templates or use fully custom prompts</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🔁 Auto-Retry</h4>
+                        <p>Built-in retry logic with exponential backoff for robust API calls</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="installation">
+                <h2>📦 Installation</h2>
+                <div class="install-box">
+                    <code>pip install llmasajudge</code>
+                </div>
+            </section>
+
+            <section id="quickstart">
+                <h2>⚡ Quick Start</h2>
+                <pre><code><span class="keyword">from</span> llmasajudge <span class="keyword">import</span> LLMAsAJudge
+
+<span class="comment"># Create a judge with a single model</span>
+judge = LLMAsAJudge(models=[<span class="string">"openai/gpt-4o-mini"</span>])
+
+<span class="comment"># Evaluate a model output</span>
+result = judge.judge(
+    input=<span class="string">"What is 2+2?"</span>,
+    model_output=<span class="string">"4"</span>,
+    ground_truth=<span class="string">"4"</span>
+)
+
+<span class="function">print</span>(result)
+<span class="comment"># {'correct': True, 'mode': 'majority', 'votes': [{'model': 'openai/gpt-4o-mini', 'correct': True}]}</span></code></pre>
+            </section>
+
+            <section id="configuration">
+                <h2>⚙️ Configuration Options</h2>
+                <table class="config-table">
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Description</th>
+                            <th>Default</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>models</code></td>
+                            <td>List of litellm model strings</td>
+                            <td><code>None</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>custom_generation_fns</code></td>
+                            <td>List of custom inference functions</td>
+                            <td><code>None</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>mode</code></td>
+                            <td>Voting mode: "majority", "single", or "all"</td>
+                            <td><code>"majority"</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>output_parser</code></td>
+                            <td>Parser type or custom function</td>
+                            <td><code>"right/wrong"</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>config</code></td>
+                            <td>Per-provider or per-model configuration</td>
+                            <td><code>{}</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>custom_template</code></td>
+                            <td>Custom prompt template</td>
+                            <td><code>None</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>use_fully_custom_prompt</code></td>
+                            <td>Use fully custom prompts</td>
+                            <td><code>False</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>wandb_project</code></td>
+                            <td>W&B project name</td>
+                            <td><code>None</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>notes</code></td>
+                            <td>Additional context for prompts</td>
+                            <td><code>None</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>fallback_comparison</code></td>
+                            <td>Fallback to string comparison</td>
+                            <td><code>True</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>verbose</code></td>
+                            <td>Print debug information</td>
+                            <td><code>False</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>num_retries</code></td>
+                            <td>Number of retry attempts</td>
+                            <td><code>2</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>backoff_base</code></td>
+                            <td>Initial wait time (seconds) for exponential backoff retry</td>
+                            <td><code>0.5</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>backoff_max</code></td>
+                            <td>Maximum wait time (seconds) between retries</td>
+                            <td><code>4.0</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>default_temperature</code></td>
+                            <td>Default temperature for all models (can be overridden in config)</td>
+                            <td><code>0.0</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>base_headers</code></td>
+                            <td>Custom HTTP headers to include in API requests</td>
+                            <td><code>None</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>litellm_cache_dir</code></td>
+                            <td>Directory path for litellm caching</td>
+                            <td><code>None</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="custom-templates">
+                <h2>📝 Creating Custom Templates</h2>
+                <p class="intro">
+                    Custom templates allow you to define your own prompt structure while still using the framework's built-in variable substitution.
+                    This is useful when you want to control the exact wording and format of your judge prompts.
+                </p>
+
+                <h3>Available Template Placeholders</h3>
+                <p style="color: #ffffff;">When creating a custom template, you can use the following placeholders that will be automatically replaced:</p>
+
+                <table class="config-table">
+                    <thead>
+                        <tr>
+                            <th>Placeholder</th>
+                            <th>Description</th>
+                            <th>Required</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>{input_block}</code></td>
+                            <td>The input/question that was given to the model</td>
+                            <td>Yes</td>
+                        </tr>
+                        <tr>
+                            <td><code>{model_output}</code></td>
+                            <td>The output generated by the model being evaluated</td>
+                            <td>Yes</td>
+                        </tr>
+                        <tr>
+                            <td><code>{ground_truth}</code></td>
+                            <td>The expected correct answer</td>
+                            <td>Yes</td>
+                        </tr>
+                        <tr>
+                            <td><code>{notes_section}</code></td>
+                            <td>Additional context/instructions (populated from the <code>notes</code> parameter)</td>
+                            <td>No</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>How Custom Templates Work</h3>
+                <div class="install-box">
+                    <p style="color: #ffffff; margin-bottom: 15px;">
+                        <strong>Step 1:</strong> Define your template string with placeholders<br>
+                        <strong>Step 2:</strong> Pass it to <code>custom_template</code> parameter<br>
+                        <strong>Step 3:</strong> The framework automatically fills in the placeholders when you call <code>judge()</code><br>
+                        <strong>Step 4:</strong> Make sure your template instructs the judge to respond in a format that matches your <code>output_parser</code>
+                    </p>
+                </div>
+
+                <h3>Complete Example</h3>
+                <p style="margin-top: 20px; margin-bottom: 10px; color: #ffffff;">Here's a full working example showing how custom templates work:</p>
+
+                <pre><code><span class="keyword">from</span> llmasajudge <span class="keyword">import</span> LLMAsAJudge
+
+<span class="comment"># Step 1: Define your custom template with placeholders</span>
+my_template = <span class="string">"""You are an expert evaluator. Your task is to determine if the model's response is correct.
+
+Question: {input_block}
+Model's Response: {model_output}
+Expected Answer: {ground_truth}
+
+{notes_section}
+
+Instructions: Carefully compare the model's response with the expected answer.
+Respond with ONLY the word "correct" or "incorrect". No explanations.
+"""</span>
+
+<span class="comment"># Step 2: Create a custom parser that matches your template's output format</span>
+<span class="keyword">def</span> <span class="function">my_parser</span>(response: <span class="keyword">str</span>) -> <span class="keyword">bool</span>:
+    <span class="string">"""Parse 'correct' or 'incorrect' from the judge's response."""</span>
+    text = response.lower().strip()
+    <span class="keyword">if</span> <span class="string">"correct"</span> <span class="keyword">in</span> text <span class="keyword">and</span> <span class="string">"incorrect"</span> <span class="keyword">not in</span> text:
+        <span class="keyword">return</span> <span class="keyword">True</span>
+    <span class="keyword">elif</span> <span class="string">"incorrect"</span> <span class="keyword">in</span> text:
+        <span class="keyword">return</span> <span class="keyword">False</span>
+    <span class="keyword">return</span> <span class="keyword">None</span>
+
+<span class="comment"># Step 3: Create judge with your custom template</span>
+judge = LLMAsAJudge(
+    models=[<span class="string">"openai/gpt-4o-mini"</span>],
+    custom_template=my_template,
+    output_parser=my_parser,
+    notes=<span class="string">"Be strict about numerical precision but lenient with formatting."</span>
+)
+
+<span class="comment"># Step 4: Call judge() - the framework fills in the placeholders automatically</span>
+result = judge.judge(
+    input=<span class="string">"What is 2+2?"</span>,
+    model_output=<span class="string">"4"</span>,
+    ground_truth=<span class="string">"4"</span>
+)
+
+<span class="function">print</span>(result)
+<span class="comment"># Output: {'correct': True, 'mode': 'majority', 'votes': [{'model': 'openai/gpt-4o-mini', 'correct': True}]}</span></code></pre>
+
+                <div class="install-box" style="margin-top: 20px;">
+                    <p style="color: #f59e0b; margin-bottom: 10px;"><strong>What happens internally:</strong></p>
+                    <p style="color: #ffffff; font-size: 0.95em; line-height: 1.6;">
+                        When you call <code>judge()</code>, the framework takes your template and replaces:<br>
+                        • <code>{input_block}</code> → <code>"What is 2+2?"</code><br>
+                        • <code>{model_output}</code> → <code>"4"</code><br>
+                        • <code>{ground_truth}</code> → <code>"4"</code><br>
+                        • <code>{notes_section}</code> → <code>"Be strict about numerical precision but lenient with formatting."</code><br>
+                        <br>
+                        The complete prompt is then sent to the judge model (gpt-4o-mini), which responds with "correct" or "incorrect",
+                        and your parser converts that to <code>True</code> or <code>False</code>.
+                    </p>
+                </div>
+
+                <h3>Best Practices for Custom Templates</h3>
+                <div class="features">
+                    <div class="feature-card">
+                        <h4>Be Explicit</h4>
+                        <p>Clearly state what you want the judge to evaluate and how to respond</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>Match Your Parser</h4>
+                        <p>If using "yes/no" parser, tell the judge to respond with "yes" or "no"</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>Use All Placeholders</h4>
+                        <p>Include all three main placeholders: {input_block}, {model_output}, {ground_truth}</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>Test & Iterate</h4>
+                        <p>Use verbose mode to see responses and refine your template accordingly</p>
+                    </div>
+                </div>
+
+                <h3>Template vs Fully Custom Prompts</h3>
+                <p style="margin-top: 20px; color: #ffffff;">
+                    There are two ways to customize prompts:
+                </p>
+                <ul style="margin-left: 40px; margin-top: 10px; line-height: 2; color: #ffffff;">
+                    <li><strong>Custom Template (<code>custom_template</code>):</strong> Define a template with placeholders.
+                    You pass <code>input</code>, <code>model_output</code>, and <code>ground_truth</code> to <code>judge()</code>,
+                    and the framework fills in the template.</li>
+                    <li><strong>Fully Custom Prompt (<code>use_fully_custom_prompt=True</code>):</strong> You construct the entire
+                    prompt yourself and pass it directly to <code>judge(prompt="your complete prompt")</code>. No placeholders or automatic substitution.</li>
+                </ul>
+            </section>
+
+            <section id="litellm-config">
+                <h2>⚙️ Configuring litellm Models</h2>
+                <p class="intro">
+                    LLMAsAJudge uses <strong>litellm</strong> under the hood, which provides access to 100+ LLM providers including
+                    OpenAI, Anthropic, W&B Inference, Azure, Cohere, and more. The <code>config</code> parameter allows you to
+                    customize model behavior and API settings.
+                </p>
+
+                <h3>Configuration Levels</h3>
+                <p style="color: #ffffff;">You can configure settings at two levels:</p>
+
+                <div class="example-section" style="margin-top: 20px;">
+                    <h3 class="example-title">Provider-Level Configuration</h3>
+                    <p class="example-description">
+                        Apply the same settings to all models from a specific provider (e.g., all "openai" models or all "wandb" models).
+                    </p>
+                    <pre><code>config={
+    <span class="string">"openai"</span>: {
+        <span class="string">"temperature"</span>: <span class="number">0.0</span>,
+        <span class="string">"max_tokens"</span>: <span class="number">100</span>
+    },
+    <span class="string">"wandb"</span>: {
+        <span class="string">"api_base"</span>: <span class="string">"https://api.inference.wandb.ai/v1"</span>,
+        <span class="string">"temperature"</span>: <span class="number">0.0</span>
+    }
+}</code></pre>
+                </div>
+
+                <div class="example-section">
+                    <h3 class="example-title">Model-Level Configuration</h3>
+                    <p class="example-description">
+                        Apply specific settings to individual models. Model-level config overrides provider-level config.
+                    </p>
+                    <pre><code>config={
+    <span class="string">"openai/gpt-4o-mini"</span>: {
+        <span class="string">"temperature"</span>: <span class="number">0.0</span>,
+        <span class="string">"max_tokens"</span>: <span class="number">50</span>
+    },
+    <span class="string">"openai/gpt-5-nano"</span>: {
+        <span class="string">"temperature"</span>: <span class="number">1.0</span>  <span class="comment"># Different setting for this specific model</span>
+    }
+}</code></pre>
+                </div>
+
+                <h3>Common Configuration Parameters</h3>
+                <table class="config-table">
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Description</th>
+                            <th>Example</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>temperature</code></td>
+                            <td>Controls randomness (0.0 = deterministic, 1.0 = creative)</td>
+                            <td><code>0.0</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>max_tokens</code></td>
+                            <td>Maximum tokens in the response</td>
+                            <td><code>100</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>api_base</code></td>
+                            <td>Custom API endpoint URL</td>
+                            <td><code>"https://api.example.com/v1"</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>api_key</code></td>
+                            <td>API key for authentication (use env vars when possible)</td>
+                            <td><code>os.getenv("API_KEY")</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>timeout</code></td>
+                            <td>Request timeout in seconds</td>
+                            <td><code>30</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>top_p</code></td>
+                            <td>Nucleus sampling parameter</td>
+                            <td><code>0.9</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>frequency_penalty</code></td>
+                            <td>Penalize repeated tokens</td>
+                            <td><code>0.0</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>presence_penalty</code></td>
+                            <td>Penalize existing tokens</td>
+                            <td><code>0.0</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Provider-Specific Examples</h3>
+
+                <div class="example-section">
+                    <h3 class="example-title">W&B Inference Configuration</h3>
+                    <pre><code>judge = LLMAsAJudge(
+    models=[
+        <span class="string">"wandb/meta-llama/Llama-3.3-70B-Instruct"</span>,
+        <span class="string">"wandb/deepseek-ai/DeepSeek-V3"</span>
+    ],
+    wandb_project=<span class="string">"my-org/my-project"</span>,  <span class="comment"># For W&B logging</span>
+    config={
+        <span class="string">"wandb"</span>: {
+            <span class="string">"api_base"</span>: <span class="string">"https://api.inference.wandb.ai/v1"</span>,
+            <span class="string">"temperature"</span>: <span class="number">0.0</span>,
+            <span class="string">"max_tokens"</span>: <span class="number">100</span>
+        }
+    }
+)</code></pre>
+                </div>
+
+                <div class="example-section">
+                    <h3 class="example-title">OpenAI Configuration</h3>
+                    <pre><code>judge = LLMAsAJudge(
+    models=[<span class="string">"openai/gpt-4o-mini"</span>, <span class="string">"openai/gpt-4o"</span>],
+    config={
+        <span class="string">"openai"</span>: {
+            <span class="string">"temperature"</span>: <span class="number">0.0</span>,
+            <span class="string">"max_tokens"</span>: <span class="number">50</span>,
+            <span class="string">"timeout"</span>: <span class="number">30</span>
+        }
+    }
+)</code></pre>
+                </div>
+
+                <div class="example-section">
+                    <h3 class="example-title">Mixed Provider Configuration</h3>
+                    <pre><code>judge = LLMAsAJudge(
+    models=[
+        <span class="string">"openai/gpt-4o-mini"</span>,
+        <span class="string">"wandb/meta-llama/Llama-3.3-70B-Instruct"</span>,
+        <span class="string">"anthropic/claude-3-sonnet"</span>
+    ],
+    config={
+        <span class="string">"openai"</span>: {
+            <span class="string">"temperature"</span>: <span class="number">0.0</span>
+        },
+        <span class="string">"wandb"</span>: {
+            <span class="string">"api_base"</span>: <span class="string">"https://api.inference.wandb.ai/v1"</span>,
+            <span class="string">"temperature"</span>: <span class="number">0.0</span>
+        },
+        <span class="string">"anthropic"</span>: {
+            <span class="string">"temperature"</span>: <span class="number">0.0</span>,
+            <span class="string">"max_tokens"</span>: <span class="number">100</span>
+        }
+    }
+)</code></pre>
+                </div>
+
+                <h3>Best Practices for litellm Configuration</h3>
+                <div class="features">
+                    <div class="feature-card">
+                        <h4>Use Low Temperature</h4>
+                        <p>For judging tasks, use temperature=0.0 for deterministic, consistent results</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>Limit Tokens</h4>
+                        <p>Set max_tokens to reduce costs since judge responses should be brief</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>Environment Variables</h4>
+                        <p>Store API keys in environment variables (OPENAI_API_KEY, WANDB_API_KEY, etc.)</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>Handle Timeouts</h4>
+                        <p>Configure appropriate timeout values and use num_retries for robustness</p>
+                    </div>
+                </div>
+
+                <h3>Authentication Setup</h3>
+                <p style="margin-top: 20px; color: #ffffff;">litellm automatically reads API keys from environment variables:</p>
+                <div class="install-box">
+                    <code>export OPENAI_API_KEY="your-key-here"<br>
+export WANDB_API_KEY="your-key-here"<br>
+export ANTHROPIC_API_KEY="your-key-here"</code>
+                </div>
+                <p style="margin-top: 20px; color: #ffffff;">
+                    Alternatively, you can pass API keys in the config (not recommended for production):
+                </p>
+                <pre><code>config={
+    <span class="string">"openai"</span>: {
+        <span class="string">"api_key"</span>: os.getenv(<span class="string">"OPENAI_API_KEY"</span>)  <span class="comment"># Better: use env vars</span>
+    }
+}</code></pre>
+            </section>
+
+            <div class="toc">
+                <h3>📋 Table of Contents</h3>
+                <ul>
+                    <li><a href="#intro">Introduction</a></li>
+                    <li><a href="#features">Key Features</a></li>
+                    <li><a href="#installation">Installation</a></li>
+                    <li><a href="#quickstart">Quick Start</a></li>
+                    <li><a href="#configuration">Configuration Options</a></li>
+                    <li><a href="#custom-templates"><strong>Creating Custom Templates</strong></a></li>
+                    <li><a href="#litellm-config"><strong>Configuring litellm Models</strong></a></li>
+                    <li><a href="#examples">Examples</a>
+                        <ul style="margin-left: 20px; margin-top: 5px;">
+                            <li><a href="#ex1">Example 1: Basic Usage</a></li>
+                            <li><a href="#ex2">Example 2: Multiple Models with Voting</a></li>
+                            <li><a href="#ex3">Example 3: Custom Inference Functions</a></li>
+                            <li><a href="#ex4">Example 4: Mixed Models & Custom Functions</a></li>
+                            <li><a href="#ex5">Example 5: Different Output Parsers</a></li>
+                            <li><a href="#ex6">Example 6: Custom Templates</a></li>
+                            <li><a href="#ex7">Example 7: Fully Custom Prompts</a></li>
+                            <li><a href="#ex8">Example 8: W&B Inference Configuration</a></li>
+                            <li><a href="#ex9">Example 9: Per-Model Configuration</a></li>
+                            <li><a href="#ex10">Example 10: Voting Modes</a></li>
+                            <li><a href="#ex11">Example 11: Error Handling & Fallback</a></li>
+                            <li><a href="#ex12">Example 12: Retry Configuration</a></li>
+                            <li><a href="#ex13">Example 13: Verbose Mode</a></li>
+                            <li><a href="#ex14">Example 14: Notes for Context</a></li>
+                            <li><a href="#ex15">Example 15: JSON Extraction</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#usecases">Use Cases</a></li>
+                </ul>
+            </div>
+
+            <section id="examples">
+                <h2>💡 Examples</h2>
+
+                <div class="example-section" id="ex1">
+                    <h3 class="example-title">Example 1: Basic Usage - Single Model</h3>
+                    <p class="example-description">Simplest usage with one litellm model and default settings.</p>
+                    <pre><code><span class="keyword">from</span> llmasajudge <span class="keyword">import</span> LLMAsAJudge
+
+judge = LLMAsAJudge(
+    models=[<span class="string">"openai/gpt-4o-mini"</span>]
+)
+
+result = judge.judge(
+    input=<span class="string">"What is 2+2?"</span>,
+    model_output=<span class="string">"4"</span>,
+    ground_truth=<span class="string">"4"</span>
+)
+<span class="function">print</span>(result)</code></pre>
+                </div>
+
+                <div class="example-section" id="ex2">
+                    <h3 class="example-title">Example 2: Multiple Models with Majority Vote</h3>
+                    <p class="example-description">Use multiple models and combine their votes with majority voting.</p>
+                    <pre><code><span class="keyword">from</span> llmasajudge <span class="keyword">import</span> LLMAsAJudge
+
+judge = LLMAsAJudge(
+    models=[
+        <span class="string">"openai/gpt-4o-mini"</span>,
+        <span class="string">"openai/gpt-5-nano"</span>
+    ],
+    config={
+        <span class="string">"openai/gpt-5-nano"</span>: {
+            <span class="string">"temperature"</span>: <span class="number">1.0</span>  <span class="comment"># GPT-5 only supports temperature=1</span>
+        }
+    },
+    mode=<span class="string">"majority"</span>
+)
+
+result = judge.judge(
+    input=<span class="string">"What is the capital of France?"</span>,
+    model_output=<span class="string">"Paris"</span>,
+    ground_truth=<span class="string">"Paris"</span>
+)
+<span class="function">print</span>(result)</code></pre>
+                </div>
+
+                <div class="example-section" id="ex3">
+                    <h3 class="example-title">Example 3: Custom Inference Functions Only</h3>
+                    <p class="example-description">Use custom inference functions instead of litellm models.</p>
+                    <pre><code><span class="keyword">from</span> llmasajudge <span class="keyword">import</span> LLMAsAJudge
+
+<span class="keyword">def</span> <span class="function">my_local_model_inference</span>(prompt: <span class="keyword">str</span>) -> <span class="keyword">str</span>:
+    <span class="string">"""Simulates calling a local LLM with the judge prompt."""</span>
+    <span class="comment"># In reality, this would call your local model/API with the full prompt</span>
+    <span class="comment"># The model would read the prompt and generate a judgment response</span>
+    <span class="comment"># For demo: simulate the model analyzing and responding</span>
+    <span class="keyword">return</span> <span class="string">"Based on my analysis, the answer is right."</span>
+
+<span class="keyword">def</span> <span class="function">another_custom_inference</span>(prompt: <span class="keyword">str</span>) -> <span class="keyword">str</span>:
+    <span class="string">"""Another custom inference implementation."""</span>
+    <span class="comment"># This could call a different local model or API</span>
+    <span class="comment"># Here we simulate checking if the answer matches</span>
+    <span class="keyword">if</span> <span class="string">"Paris"</span> <span class="keyword">in</span> prompt <span class="keyword">and</span> <span class="string">"capital of France"</span> <span class="keyword">in</span> prompt:
+        <span class="keyword">return</span> <span class="string">"I judge this to be right"</span>
+    <span class="keyword">return</span> <span class="string">"I judge this to be wrong"</span>
+
+judge = LLMAsAJudge(
+    custom_generation_fns=[
+        my_local_model_inference,
+        another_custom_inference
+    ]
+)
+
+result = judge.judge(
+    input=<span class="string">"What is the capital of France?"</span>,
+    model_output=<span class="string">"Paris"</span>,
+    ground_truth=<span class="string">"Paris"</span>
+)
+<span class="function">print</span>(result)</code></pre>
+                </div>
+
+                <div class="example-section" id="ex4">
+                    <h3 class="example-title">Example 4: Mixed - litellm Models + Custom Functions</h3>
+                    <p class="example-description">Combine litellm models with custom inference functions.</p>
+                    <pre><code><span class="keyword">from</span> llmasajudge <span class="keyword">import</span> LLMAsAJudge
+
+<span class="keyword">def</span> <span class="function">my_custom_judge</span>(prompt: <span class="keyword">str</span>) -> <span class="keyword">str</span>:
+    <span class="string">"""Custom inference function that simulates calling a local model."""</span>
+    <span class="comment"># This would call your local model/API with the full prompt</span>
+    <span class="comment"># The model reads the prompt and generates a natural language judgment</span>
+    <span class="comment"># For demo: return a full response that will be parsed</span>
+    <span class="keyword">return</span> <span class="string">"After analyzing the question and answer, I believe this is right."</span>
+
+judge = LLMAsAJudge(
+    models=[<span class="string">"openai/gpt-4o-mini"</span>],
+    custom_generation_fns=[my_custom_judge]
+)
+
+result = judge.judge(
+    input=<span class="string">"What is 2+2?"</span>,
+    model_output=<span class="string">"4"</span>,
+    ground_truth=<span class="string">"4"</span>
+)
+<span class="comment"># Will have 2 votes: one from gpt-4o-mini, one from custom_fn_0</span>
+<span class="function">print</span>(result)</code></pre>
+                </div>
+
+                <div class="example-section" id="ex5">
+                    <h3 class="example-title">Example 5: Different Output Parsers</h3>
+                    <p class="example-description">Use different built-in parsers or create your own.</p>
+                    <pre><code><span class="keyword">from</span> llmasajudge <span class="keyword">import</span> LLMAsAJudge
+
+<span class="comment"># Yes/No parser</span>
+judge_yesno = LLMAsAJudge(
+    models=[<span class="string">"openai/gpt-4o-mini"</span>],
+    output_parser=<span class="string">'yes/no'</span>
+)
+
+<span class="comment"># Pass/Fail parser</span>
+judge_passfail = LLMAsAJudge(
+    models=[<span class="string">"openai/gpt-4o-mini"</span>],
+    output_parser=<span class="string">'pass/fail'</span>
+)
+
+<span class="comment"># Custom parser with custom template</span>
+<span class="keyword">def</span> <span class="function">custom_parser</span>(response: <span class="keyword">str</span>) -> <span class="keyword">bool</span>:
+    <span class="string">"""Parse 'correct' or 'incorrect' from response."""</span>
+    text = response.lower().strip()
+    <span class="keyword">if</span> <span class="string">"correct"</span> <span class="keyword">in</span> text <span class="keyword">and</span> <span class="string">"incorrect"</span> <span class="keyword">not in</span> text:
+        <span class="keyword">return</span> <span class="keyword">True</span>
+    <span class="keyword">elif</span> <span class="string">"incorrect"</span> <span class="keyword">in</span> text:
+        <span class="keyword">return</span> <span class="keyword">False</span>
+    <span class="keyword">return</span> <span class="keyword">None</span>
+
+judge_custom = LLMAsAJudge(
+    models=[<span class="string">"openai/gpt-4o-mini"</span>],
+    output_parser=custom_parser,
+    custom_template=<span class="string">"""You are a judge. Evaluate if the model output matches the ground truth.
+
+Input: {input_block}
+Model Output: {model_output}
+Ground Truth: {ground_truth}
+
+Respond with either "correct" or "incorrect". No other text.
+"""</span>
+)
+
+test_case = {
+    <span class="string">"input"</span>: <span class="string">"What is 2+2?"</span>,
+    <span class="string">"model_output"</span>: <span class="string">"4"</span>,
+    <span class="string">"ground_truth"</span>: <span class="string">"4"</span>
+}
+
+<span class="function">print</span>(<span class="string">f"Yes/No: {judge_yesno.judge(**test_case)}"</span>)
+<span class="function">print</span>(<span class="string">f"Pass/Fail: {judge_passfail.judge(**test_case)}"</span>)
+<span class="function">print</span>(<span class="string">f"Custom: {judge_custom.judge(**test_case)}"</span>)</code></pre>
+                </div>
+
+                <div class="example-section" id="ex6">
+                    <h3 class="example-title">Example 6: Custom Templates</h3>
+                    <p class="example-description">Define your own prompt template with placeholders.</p>
+                    <pre><code><span class="keyword">from</span> llmasajudge <span class="keyword">import</span> LLMAsAJudge
+
+custom_template = <span class="string">"""You are an expert judge. Evaluate if the model's answer is correct.
+
+Question: {input_block}
+Model's Answer: {model_output}
+Correct Answer: {ground_truth}
+
+{notes_section}
+Respond with only "right" or "wrong".
+"""</span>
+
+judge = LLMAsAJudge(
+    models=[<span class="string">"openai/gpt-4o-mini"</span>],
+    custom_template=custom_template,
+    notes=<span class="string">"Be strict about formatting."</span>
+)
+
+result = judge.judge(
+    input=<span class="string">"What is Python?"</span>,
+    model_output=<span class="string">"A programming language"</span>,
+    ground_truth=<span class="string">"A programming language"</span>
+)
+<span class="function">print</span>(result)</code></pre>
+                </div>
+
+                <div class="example-section" id="ex7">
+                    <h3 class="example-title">Example 7: Fully Custom Prompts</h3>
+                    <p class="example-description">Build your own complete prompt without templates.</p>
+                    <pre><code><span class="keyword">from</span> llmasajudge <span class="keyword">import</span> LLMAsAJudge
+
+judge = LLMAsAJudge(
+    models=[<span class="string">"openai/gpt-4o-mini"</span>],
+    use_fully_custom_prompt=<span class="keyword">True</span>,
+    output_parser=<span class="string">'yes/no'</span>
+)
+
+my_prompt = <span class="string">"""Is the following answer correct?
+Question: What is 2+2?
+Answer: 4
+Respond with yes or no only.
+"""</span>
+
+result = judge.judge(prompt=my_prompt)
+<span class="function">print</span>(result)</code></pre>
+                </div>
+
+                <div class="example-section" id="ex8">
+                    <h3 class="example-title">Example 8: W&B Inference Configuration</h3>
+                    <p class="example-description">Configure W&B Inference API with custom settings.</p>
+                    <pre><code><span class="keyword">from</span> llmasajudge <span class="keyword">import</span> LLMAsAJudge
+
+judge = LLMAsAJudge(
+    models=[
+        <span class="string">"wandb/meta-llama/Llama-3.3-70B-Instruct"</span>,
+        <span class="string">"wandb/deepseek-ai/DeepSeek-V3"</span>
+    ],
+    wandb_project=<span class="string">"wandb_fc/quickstart_playground"</span>,
+    config={
+        <span class="string">"wandb"</span>: {
+            <span class="string">"api_base"</span>: <span class="string">"https://api.inference.wandb.ai/v1"</span>,
+            <span class="string">"temperature"</span>: <span class="number">0.0</span>
+        }
+    }
+)
+
+result = judge.judge(
+    input=<span class="string">"What is ML?"</span>,
+    model_output=<span class="string">"Machine Learning"</span>,
+    ground_truth=<span class="string">"Machine Learning"</span>
+)
+<span class="function">print</span>(result)</code></pre>
+                </div>
+
+                <div class="example-section" id="ex9">
+                    <h3 class="example-title">Example 9: Per-Model Configuration</h3>
+                    <p class="example-description">Configure different settings for each model.</p>
+                    <pre><code><span class="keyword">from</span> llmasajudge <span class="keyword">import</span> LLMAsAJudge
+
+judge = LLMAsAJudge(
+    models=[
+        <span class="string">"openai/gpt-4o-mini"</span>,
+        <span class="string">"openai/gpt-5-nano"</span>
+    ],
+    config={
+        <span class="string">"openai/gpt-4o-mini"</span>: {
+            <span class="string">"temperature"</span>: <span class="number">0.0</span>
+        },
+        <span class="string">"openai/gpt-5-nano"</span>: {
+            <span class="string">"temperature"</span>: <span class="number">1.0</span>  <span class="comment"># GPT-5 only supports temperature=1</span>
+        }
+    }
+)
+
+result = judge.judge(
+    input=<span class="string">"Test"</span>,
+    model_output=<span class="string">"Result"</span>,
+    ground_truth=<span class="string">"Result"</span>
+)
+<span class="function">print</span>(result)</code></pre>
+                </div>
+
+                <div class="example-section" id="ex10">
+                    <h3 class="example-title">Example 10: Voting Modes</h3>
+                    <p class="example-description">Use different voting strategies to aggregate results.</p>
+                    <pre><code><span class="keyword">from</span> llmasajudge <span class="keyword">import</span> LLMAsAJudge
+
+test_case = {
+    <span class="string">"input"</span>: <span class="string">"What is AI?"</span>,
+    <span class="string">"model_output"</span>: <span class="string">"Artificial Intelligence"</span>,
+    <span class="string">"ground_truth"</span>: <span class="string">"Artificial Intelligence"</span>
+}
+
+<span class="comment"># Majority vote (default)</span>
+judge_majority = LLMAsAJudge(
+    models=[<span class="string">"openai/gpt-4o-mini"</span>, <span class="string">"openai/gpt-5-nano"</span>],
+    config={<span class="string">"openai/gpt-5-nano"</span>: {<span class="string">"temperature"</span>: <span class="number">1.0</span>}},
+    mode=<span class="string">'majority'</span>
+)
+<span class="function">print</span>(<span class="string">f"Majority: {judge_majority.judge(**test_case)}"</span>)
+
+<span class="comment"># Single vote (uses only first judge)</span>
+judge_single = LLMAsAJudge(
+    models=[<span class="string">"openai/gpt-4o-mini"</span>, <span class="string">"openai/gpt-5-nano"</span>],
+    config={<span class="string">"openai/gpt-5-nano"</span>: {<span class="string">"temperature"</span>: <span class="number">1.0</span>}},
+    mode=<span class="string">'single'</span>
+)
+<span class="function">print</span>(<span class="string">f"Single: {judge_single.judge(**test_case)}"</span>)
+
+<span class="comment"># All must agree (unanimous)</span>
+judge_all = LLMAsAJudge(
+    models=[<span class="string">"openai/gpt-4o-mini"</span>, <span class="string">"openai/gpt-5-nano"</span>],
+    config={<span class="string">"openai/gpt-5-nano"</span>: {<span class="string">"temperature"</span>: <span class="number">1.0</span>}},
+    mode=<span class="string">'all'</span>
+)
+<span class="function">print</span>(<span class="string">f"All: {judge_all.judge(**test_case)}"</span>)</code></pre>
+                </div>
+
+                <div class="example-section" id="ex11">
+                    <h3 class="example-title">Example 11: Error Handling & Fallback</h3>
+                    <p class="example-description">Configure fallback behavior when parsing fails.</p>
+                    <pre><code><span class="keyword">from</span> llmasajudge <span class="keyword">import</span> LLMAsAJudge
+
+<span class="comment"># With fallback (default)</span>
+judge_with_fallback = LLMAsAJudge(
+    models=[<span class="string">"openai/gpt-4o-mini"</span>],
+    fallback_comparison=<span class="keyword">True</span>
+)
+
+<span class="comment"># Without fallback</span>
+judge_no_fallback = LLMAsAJudge(
+    models=[<span class="string">"openai/gpt-4o-mini"</span>],
+    fallback_comparison=<span class="keyword">False</span>
+)
+
+result = judge_with_fallback.judge(
+    input=<span class="string">"Test"</span>,
+    model_output=<span class="string">"Answer"</span>,
+    ground_truth=<span class="string">"Answer"</span>
+)
+<span class="function">print</span>(result)</code></pre>
+                </div>
+
+                <div class="example-section" id="ex12">
+                    <h3 class="example-title">Example 12: Retry Configuration</h3>
+                    <p class="example-description">Configure retry behavior for API calls.</p>
+                    <pre><code><span class="keyword">from</span> llmasajudge <span class="keyword">import</span> LLMAsAJudge
+
+judge = LLMAsAJudge(
+    models=[<span class="string">"openai/gpt-4o-mini"</span>],
+    num_retries=<span class="number">3</span>,         <span class="comment"># Retry up to 3 times</span>
+    backoff_base=<span class="number">1.0</span>,       <span class="comment"># Start with 1 second wait</span>
+    backoff_max=<span class="number">10.0</span>,       <span class="comment"># Max 10 seconds between retries</span>
+    verbose=<span class="keyword">True</span>            <span class="comment"># Print retry information</span>
+)
+
+result = judge.judge(
+    input=<span class="string">"Test"</span>,
+    model_output=<span class="string">"Result"</span>,
+    ground_truth=<span class="string">"Result"</span>
+)
+<span class="function">print</span>(result)</code></pre>
+                </div>
+
+                <div class="example-section" id="ex13">
+                    <h3 class="example-title">Example 13: Verbose Mode</h3>
+                    <p class="example-description">Enable verbose output for debugging.</p>
+                    <pre><code><span class="keyword">from</span> llmasajudge <span class="keyword">import</span> LLMAsAJudge
+
+<span class="keyword">def</span> <span class="function">my_local_llm_inference</span>(prompt: <span class="keyword">str</span>) -> <span class="keyword">str</span>:
+    <span class="string">"""Simulates a local LLM that reads the prompt and generates a judgment."""</span>
+    <span class="comment"># In reality, this would call your local model with the prompt</span>
+    <span class="comment"># For demo purposes, we'll simulate reading the prompt and responding</span>
+    <span class="keyword">if</span> <span class="string">"model_output"</span> <span class="keyword">in</span> prompt <span class="keyword">and</span> <span class="string">"ground_truth"</span> <span class="keyword">in</span> prompt:
+        <span class="comment"># Simulate LLM analyzing the prompt and responding</span>
+        <span class="keyword">return</span> <span class="string">"right"</span>
+    <span class="keyword">return</span> <span class="string">"wrong"</span>
+
+judge = LLMAsAJudge(
+    models=[<span class="string">"openai/gpt-4o-mini"</span>],
+    custom_generation_fns=[my_local_llm_inference],
+    verbose=<span class="keyword">True</span>
+)
+
+result = judge.judge(
+    input=<span class="string">"What is 2+2?"</span>,
+    model_output=<span class="string">"4"</span>,
+    ground_truth=<span class="string">"4"</span>
+)
+<span class="comment"># Will print: "Model openai/gpt-4o-mini voted: True"</span>
+<span class="comment"># Will print: "Custom function 0 voted: True"</span>
+<span class="function">print</span>(result)</code></pre>
+                </div>
+
+                <div class="example-section" id="ex14">
+                    <h3 class="example-title">Example 14: Notes for Additional Context</h3>
+                    <p class="example-description">Add extra instructions to guide judge behavior.</p>
+                    <pre><code><span class="keyword">from</span> llmasajudge <span class="keyword">import</span> LLMAsAJudge
+
+judge = LLMAsAJudge(
+    models=[<span class="string">"openai/gpt-4o-mini"</span>],
+    notes=<span class="string">"Be lenient with capitalization and punctuation. Focus on semantic meaning."</span>
+)
+
+result = judge.judge(
+    input=<span class="string">"What is Python?"</span>,
+    model_output=<span class="string">"a programming language"</span>,  <span class="comment"># lowercase</span>
+    ground_truth=<span class="string">"A programming language"</span>   <span class="comment"># uppercase</span>
+)
+<span class="function">print</span>(result)</code></pre>
+                </div>
+
+                <div class="example-section" id="ex15">
+                    <h3 class="example-title">Example 15: JSON Extraction Parser</h3>
+                    <p class="example-description">Extract specific fields from JSON responses.</p>
+                    <pre><code><span class="keyword">from</span> llmasajudge <span class="keyword">import</span> LLMAsAJudge
+
+<span class="keyword">def</span> <span class="function">json_correct_parser</span>(response: <span class="keyword">str</span>) -> <span class="keyword">bool</span>:
+    <span class="string">"""Custom parser that extracts 'correct' field from JSON."""</span>
+    <span class="keyword">import</span> json
+    <span class="keyword">try</span>:
+        data = json.loads(response.strip())
+        <span class="keyword">return</span> data.get(<span class="string">"correct"</span>, <span class="keyword">False</span>)
+    <span class="keyword">except</span>:
+        <span class="keyword">return</span> <span class="keyword">False</span>
+
+judge = LLMAsAJudge(
+    models=[<span class="string">"openai/gpt-4o-mini"</span>],
+    output_parser=json_correct_parser,
+    custom_template=<span class="string">"""Evaluate if the model output matches the ground truth.
+Input: {input_block}
+Model Output: {model_output}
+Ground Truth: {ground_truth}
+
+Respond with JSON: {{"correct": true}} or {{"correct": false}}
+"""</span>
+)
+
+result = judge.judge(
+    input=<span class="string">"What is 2+2?"</span>,
+    model_output=<span class="string">"4"</span>,
+    ground_truth=<span class="string">"4"</span>
+)
+<span class="function">print</span>(result)</code></pre>
+                </div>
+            </section>
+
+            <section id="usecases">
+                <h2>🎯 Use Cases</h2>
+                <div class="features">
+                    <div class="feature-card">
+                        <h4>🧪 Model Evaluation</h4>
+                        <p>Automatically evaluate model outputs against ground truth in your ML pipelines</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>📊 Benchmarking</h4>
+                        <p>Run systematic benchmarks using multiple judge models for consensus</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>✅ Quality Assurance</h4>
+                        <p>Validate model responses in production with automated LLM judges</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🔬 Research</h4>
+                        <p>Compare different judging strategies and model combinations</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <footer>
+            <p>Built with ❤️ for the AI community</p>
+            <p style="margin-top: 10px;">
+                <a href="https://github.com/yourusername/llmasajudge">GitHub</a> •
+                <a href="https://pypi.org/project/llmasajudge/">PyPI</a> •
+                <a href="https://docs.llmasajudge.com">Documentation</a>
+            </p>
+        </footer>
+    </div>
+</body>
+</html>
